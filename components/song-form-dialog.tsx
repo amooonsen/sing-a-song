@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CgSpinner } from "react-icons/cg"
@@ -40,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { StarRating } from "@/components/star-rating"
+import { useRefresh } from "@/components/refresh-provider"
 
 export type SongFormData = {
   id: string
@@ -68,7 +68,7 @@ export function SongFormDialog({
   onOpenChange,
   showTrigger = false,
 }: SongFormDialogProps) {
-  const router = useRouter()
+  const { refresh } = useRefresh()
   const isEdit = Boolean(song)
   const [internalOpen, setInternalOpen] = React.useState(false)
 
@@ -121,11 +121,18 @@ export function SongFormDialog({
     }
     toast.success(isEdit ? "곡이 수정되었어요" : "곡이 추가되었어요")
     setOpen(false)
-    router.refresh()
+    refresh()
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setOpen}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(next) => {
+        // 저장 중에는 닫기 방지
+        if (!next && form.formState.isSubmitting) return
+        setOpen(next)
+      }}
+    >
       {showTrigger && (
         <DialogTrigger asChild>
           <Button>

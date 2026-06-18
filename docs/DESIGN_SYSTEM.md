@@ -44,6 +44,7 @@ shadcn 기본 토큰(oklch, `:root` & `.dark` 2벌, `app/globals.css`)을 그대
 | `ProfileNameDialog` | Dialog, Form, Input | display_name 변경(`updateDisplayName`) |
 | `AuthForm` | Tabs, Card, Form, Input, Button | 로그인/회원가입(이름 포함) 탭, 로고 아이콘 배지 |
 | `SongBrowser` | (client) 툴바 + children(목록) 셸 | 단일 `useTransition` 으로 검색/필터 네비게이션·로딩(스피너+디밍) 일원화 |
+| `RefreshProvider` | (client) 상단 프로그레스 바 + `useRefresh()` | CRUD 후 `router.refresh()` 재조회를 transition 으로 추적해 상단 로딩바 표시. 다이얼로그/삭제는 버튼 스피너 → 닫힘 → 상단바로 연결, 진행 중 닫기 차단 |
 | `SongCard` | Card, Badge, DropdownMenu + StarRating(읽기전용) | 배지: 장르(secondary)·국적·씹덕(일본)(outline), 메타 "등록: {작성자} · 날짜" |
 | `SongList` | grid + Skeleton + EmptyState | `grid-cols-1 sm:2 lg:3 xl:4`, 더 보기 링크 |
 | `SongFormDialog` | Dialog, Form, Input, Textarea, Select, Button + StarRating(입력) | 생성·수정 공용. 국적 Select + 일본일 때만 씹덕/비씹덕 Select 노출(useWatch) |

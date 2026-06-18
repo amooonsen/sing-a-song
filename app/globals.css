@@ -130,6 +130,19 @@
     }
 }
 
+/* 상단 로딩바(CRUD 재조회) 인디터미닛 애니메이션 */
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(420%);
+  }
+}
+.loading-bar-indicator {
+  animation: loading-bar 1.1s linear infinite;
+}
+
 /* 별점(StarRating) 전용 액센트 — 디자인 시스템 토큰 */
 :root {
   --star: oklch(0.8 0.168 76);

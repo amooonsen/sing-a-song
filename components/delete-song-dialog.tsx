@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { CgSpinner } from "react-icons/cg"
 import { toast } from "sonner"
 
 import { deleteSong } from "@/lib/actions/songs"
+import { useRefresh } from "@/components/refresh-provider"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +30,7 @@ export function DeleteSongDialog({
   open,
   onOpenChange,
 }: DeleteSongDialogProps) {
-  const router = useRouter()
+  const { refresh } = useRefresh()
   const [pending, setPending] = React.useState(false)
 
   async function onConfirm() {
@@ -42,11 +43,17 @@ export function DeleteSongDialog({
     }
     toast.success("삭제되었어요")
     onOpenChange(false)
-    router.refresh()
+    refresh()
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next && pending) return // 삭제 중에는 닫기 방지
+        onOpenChange(next)
+      }}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>곡을 삭제할까요?</AlertDialogTitle>
@@ -64,6 +71,7 @@ export function DeleteSongDialog({
             }}
             className="bg-destructive text-white hover:bg-destructive/90"
           >
+            {pending && <CgSpinner className="size-4 animate-spin" />}
             삭제
           </AlertDialogAction>
         </AlertDialogFooter>
