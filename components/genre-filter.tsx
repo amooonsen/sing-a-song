@@ -1,7 +1,5 @@
 "use client"
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-
 import { ALL_GENRES, GENRES } from "@/lib/constants/genres"
 import {
   Select,
@@ -11,23 +9,15 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-export function GenreFilter() {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const current = searchParams.get("genre") ?? ALL_GENRES
+type GenreFilterProps = {
+  value: string
+  onChange: (value: string) => void
+}
 
-  function onChange(value: string) {
-    const params = new URLSearchParams(searchParams.toString())
-    if (value === ALL_GENRES) params.delete("genre")
-    else params.set("genre", value)
-    params.delete("page")
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
-  }
-
+export function GenreFilter({ value, onChange }: GenreFilterProps) {
   return (
-    <Select value={current} onValueChange={onChange}>
-      <SelectTrigger className="w-full sm:w-40" aria-label="장르 필터">
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="w-full sm:w-36" aria-label="장르 필터">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

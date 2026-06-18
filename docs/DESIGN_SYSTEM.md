@@ -39,8 +39,11 @@ shadcn 기본 토큰(oklch, `:root` & `.dark` 2벌, `app/globals.css`)을 그대
 ## 3. 컴포넌트 ↔ shadcn 매핑
 | 앱 컴포넌트 | shadcn 프리미티브 | 비고 |
 |---|---|---|
-| `AppHeader` | DropdownMenu, Avatar, Button(ghost), Separator + ThemeToggle | sticky 상단바, 로그아웃은 `<form action={signout}>` |
-| `AuthForm` | Tabs, Card, Form, Input, Button | 로그인/회원가입 탭, RHF + zod |
+| `AppHeader` | (server) 로고(HiMusicalNote 배지) + ThemeToggle + `UserMenu` | sticky, 작성자 이름 조회 |
+| `UserMenu` | DropdownMenu, Avatar + `ProfileNameDialog` | "이름 변경"/로그아웃(`<form action={signout}>`) |
+| `ProfileNameDialog` | Dialog, Form, Input | display_name 변경(`updateDisplayName`) |
+| `AuthForm` | Tabs, Card, Form, Input, Button | 로그인/회원가입(이름 포함) 탭, 로고 아이콘 배지 |
+| `SongBrowser` | (client) 툴바 + children(목록) 셸 | 단일 `useTransition` 으로 검색/필터 네비게이션·로딩(스피너+디밍) 일원화 |
 | `SongCard` | Card, Badge, DropdownMenu + StarRating(읽기전용) | 배지: 장르(secondary)·국적·씹덕(일본)(outline), 메타 "등록: {작성자} · 날짜" |
 | `SongList` | grid + Skeleton + EmptyState | `grid-cols-1 sm:2 lg:3 xl:4`, 더 보기 링크 |
 | `SongFormDialog` | Dialog, Form, Input, Textarea, Select, Button + StarRating(입력) | 생성·수정 공용. 국적 Select + 일본일 때만 씹덕/비씹덕 Select 노출(useWatch) |

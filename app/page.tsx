@@ -1,8 +1,5 @@
 import { AppHeader } from "@/components/app-header"
-import { CountryFilter } from "@/components/country-filter"
-import { GenreFilter } from "@/components/genre-filter"
-import { SearchBar } from "@/components/search-bar"
-import { SongFormDialog } from "@/components/song-form-dialog"
+import { SongBrowser } from "@/components/song-browser"
 import { SongList } from "@/components/song-list"
 import { ALL_GENRES } from "@/lib/constants/genres"
 import { ALL_COUNTRIES, ALL_OTAKU, JAPAN } from "@/lib/constants/countries"
@@ -48,27 +45,14 @@ export default async function HomePage({
     <div className="flex min-h-dvh flex-col">
       <AppHeader />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-        <div className="mb-6 flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              추천 곡
-            </h1>
-            <SongFormDialog showTrigger />
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <SearchBar />
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <GenreFilter />
-              <CountryFilter />
-            </div>
-          </div>
-        </div>
-        <SongList
-          songs={songs}
-          hasMore={hasMore}
-          nextHref={nextHref}
-          hasFilters={hasFilters}
-        />
+        <SongBrowser>
+          <SongList
+            songs={songs}
+            hasMore={hasMore}
+            nextHref={nextHref}
+            hasFilters={hasFilters}
+          />
+        </SongBrowser>
       </main>
     </div>
   )

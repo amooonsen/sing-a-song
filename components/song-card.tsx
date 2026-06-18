@@ -52,7 +52,7 @@ export function SongCard({ song }: { song: SongWithAuthor }) {
   }
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col transition-all hover:-translate-y-0.5 hover:shadow-md">
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
