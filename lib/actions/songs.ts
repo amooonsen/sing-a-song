@@ -35,6 +35,12 @@ export async function createSong(values: unknown): Promise<ActionResult> {
     return { ok: false, message: "로그인이 필요합니다" }
   }
 
+  // FK(songs.created_by -> profiles.id) 보장: 가입 트리거 누락 대비 본인 프로필 self-heal
+  await supabase.from("profiles").upsert(
+    { id: user.id, display_name: user.email?.split("@")[0] ?? "사용자" },
+    { onConflict: "id", ignoreDuplicates: true }
+  )
+
   const { title, artist, genre, country, otakuType, description, rating } =
     parsed.data
   const { error } = await supabase.from("songs").insert({
