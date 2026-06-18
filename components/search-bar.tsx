@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { Search, X } from "lucide-react"
+import { HiOutlineMagnifyingGlass, HiOutlineXMark } from "react-icons/hi2"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,7 +27,7 @@ export function SearchBar() {
 
   return (
     <div className="relative w-full">
-      <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+      <HiOutlineMagnifyingGlass className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         aria-label="곡 검색"
         placeholder="제목 또는 가수로 검색"
@@ -44,7 +44,7 @@ export function SearchBar() {
           className="absolute top-1/2 right-1 -translate-y-1/2"
           onClick={() => setValue("")}
         >
-          <X className="size-4" />
+          <HiOutlineXMark className="size-4" />
         </Button>
       )}
     </div>

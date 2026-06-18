@@ -14,7 +14,9 @@
 - [x] `supabase init`, 마이그레이션 작성(`supabase/migrations/20260618000000_init_song_schema.sql`)
 - [x] 손작성 타입 `types/database.ts` + `gen:types` 스크립트
 - [x] `.env.local.example` + 런타임 env 가드(`lib/env.ts`)
+- [x] 국적/씹덕 추가 마이그레이션(`20260618010000_add_song_country.sql`, 추가형 — 이미 적용된 스키마에도 안전)
 - [ ] **(사용자 작업)** Supabase 프로젝트 생성 → `supabase link --project-ref <ref>` → `supabase db push`
+- [ ] **(사용자 작업)** ⚠️ 이미 초기 스키마를 push 했다면 **`supabase db push` 재실행**으로 국적 마이그레이션 적용(없으면 곡 저장 실패)
 - [ ] **(사용자 작업)** 대시보드 Auth 설정에서 **"Confirm email" 비활성화**
 - [ ] **(사용자 작업)** `.env.local` 작성 후 `pnpm gen:types` 로 타입 재생성
 - [ ] 게이트: 로그인 후 곡 등록 → 목록 조회 동작

@@ -31,6 +31,8 @@
 | title | text | 1–200자, not null |
 | artist | text | 1–100자, not null |
 | genre | text | 고정 목록 CHECK (아래) |
+| country | text | 노래 국적, 고정 목록 CHECK: 한국/일본/서양/기타 |
+| otaku_type | text \| null | **일본 곡만** 씹덕/비씹덕 (그 외 국가는 반드시 NULL, CHECK 로 강제) |
 | description | text \| null | ≤1000자, 선택 |
 | rating | smallint | 1–5, 등록자 부여 |
 | created_by | uuid \| null | `profiles(id)` 참조(작성자 임베드용), default `auth.uid()` |
@@ -40,11 +42,13 @@
 - **장르 캐노니컬 목록(단일 출처 `lib/constants/genres.ts`)**:
   `발라드, 댄스, 힙합, R&B, 록, 인디, 재즈, 클래식, 트로트, OST, K-팝, 팝`
   → Select 옵션 · zod enum · SQL CHECK 가 모두 일치해야 함.
+- **국적 목록(단일 출처 `lib/constants/countries.ts`)**: `한국, 일본, 서양, 기타`.
+  - **씹덕/비씹덕(`OTAKU_TYPES`)**: 국적이 **일본일 때만** 적용되는 하위 분류. 등록 시 일본을 고르면 씹덕/비씹덕 선택이 필수가 되고, 다른 국가로 바꾸면 값이 비워진다. DB·zod·UI 3계층 모두에서 일관 강제.
 
 ## 4. 기능 명세
 - **조회/정렬**: `created_at DESC`. 기본 페이지 단위 `PAGE_SIZE = 24`, "더 보기"로 누적 로드(`?page=`).
 - **검색**: 제목 또는 가수 부분일치(대소문자 무시, trigram 인덱스). 300ms 디바운스 → `?q=`.
-- **필터**: 장르 단일 선택 → `?genre=`. 검색/필터/정렬/페이지는 모두 URL `searchParams` 로 표현(공유 가능).
+- **필터**: 장르 단일 선택 → `?genre=`, 국적 단일 선택 → `?country=`. 국적이 **일본**이면 씹덕/비씹덕 하위 필터(`?otaku=`)가 추가로 노출(다른 국가 선택 시 자동 제거). 검색/필터/정렬/페이지는 모두 URL `searchParams` 로 표현(공유 가능).
 - **등록/수정**: 다이얼로그(생성·수정 공용) + react-hook-form + zod. 서버 액션이 동일 스키마로 재검증.
 - **삭제**: AlertDialog 확인 후 삭제.
 - **별점**: 입력(클릭/키보드) + 읽기전용(카드). 5점 만점 정수.

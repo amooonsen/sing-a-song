@@ -3,13 +3,22 @@
 import { revalidatePath } from "next/cache"
 
 import { createClient } from "@/lib/supabase/server"
-import { songSchema } from "@/lib/validations/song"
+import { JAPAN } from "@/lib/constants/countries"
+import { songSchema, type SongFormValues } from "@/lib/validations/song"
 
 export type ActionResult = { ok: true } | { ok: false; message: string }
 
 function normalizeDescription(description?: string): string | null {
   const trimmed = description?.trim()
   return trimmed ? trimmed : null
+}
+
+/** 일본 곡일 때만 씹덕/비씹덕 저장, 그 외 국가는 null (DB CHECK 와 일치) */
+function resolveOtakuType(
+  country: SongFormValues["country"],
+  otakuType: SongFormValues["otakuType"]
+): string | null {
+  return country === JAPAN ? (otakuType ?? null) : null
 }
 
 export async function createSong(values: unknown): Promise<ActionResult> {
@@ -26,17 +35,21 @@ export async function createSong(values: unknown): Promise<ActionResult> {
     return { ok: false, message: "로그인이 필요합니다" }
   }
 
-  const { title, artist, genre, description, rating } = parsed.data
+  const { title, artist, genre, country, otakuType, description, rating } =
+    parsed.data
   const { error } = await supabase.from("songs").insert({
     title,
     artist,
     genre,
+    country,
+    otaku_type: resolveOtakuType(country, otakuType),
     description: normalizeDescription(description),
     rating,
     created_by: user.id,
   })
   if (error) {
-    return { ok: false, message: "등록에 실패했습니다. 잠시 후 다시 시도해 주세요" }
+    console.error("[createSong]", error)
+    return { ok: false, message: `등록 실패: ${error.message}` }
   }
 
   revalidatePath("/")
@@ -60,20 +73,24 @@ export async function updateSong(
     return { ok: false, message: "로그인이 필요합니다" }
   }
 
-  const { title, artist, genre, description, rating } = parsed.data
+  const { title, artist, genre, country, otakuType, description, rating } =
+    parsed.data
   const { error } = await supabase
     .from("songs")
     .update({
       title,
       artist,
       genre,
+      country,
+      otaku_type: resolveOtakuType(country, otakuType),
       description: normalizeDescription(description),
       rating,
       updated_by: user.id,
     })
     .eq("id", id)
   if (error) {
-    return { ok: false, message: "수정에 실패했습니다. 잠시 후 다시 시도해 주세요" }
+    console.error("[updateSong]", error)
+    return { ok: false, message: `수정 실패: ${error.message}` }
   }
 
   revalidatePath("/")
@@ -91,7 +108,8 @@ export async function deleteSong(id: string): Promise<ActionResult> {
 
   const { error } = await supabase.from("songs").delete().eq("id", id)
   if (error) {
-    return { ok: false, message: "삭제에 실패했습니다. 잠시 후 다시 시도해 주세요" }
+    console.error("[deleteSong]", error)
+    return { ok: false, message: `삭제 실패: ${error.message}` }
   }
 
   revalidatePath("/")

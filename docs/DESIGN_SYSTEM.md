@@ -34,16 +34,19 @@ shadcn 기본 토큰(oklch, `:root` & `.dark` 2벌, `app/globals.css`)을 그대
 
 폰트: `Geist`(라틴, `--font-sans`). 한글은 시스템 폰트로 폴백.
 
+**아이콘**: 앱 컴포넌트는 `react-icons` 사용 — Heroicons v2(`react-icons/hi2`, 아웃라인 위주), 별점은 솔리드 `HiStar`(색만 `text-star`/`text-star-muted`로 구분), 스피너는 `CgSpinner`(`react-icons/cg`). shadcn 프리미티브 내부 글리프(체크/셰브론/X)는 `lucide-react` 유지.
+
 ## 3. 컴포넌트 ↔ shadcn 매핑
 | 앱 컴포넌트 | shadcn 프리미티브 | 비고 |
 |---|---|---|
 | `AppHeader` | DropdownMenu, Avatar, Button(ghost), Separator + ThemeToggle | sticky 상단바, 로그아웃은 `<form action={signout}>` |
 | `AuthForm` | Tabs, Card, Form, Input, Button | 로그인/회원가입 탭, RHF + zod |
-| `SongCard` | Card, Badge, DropdownMenu + StarRating(읽기전용) | 메뉴: 수정/삭제, 메타 "등록: {작성자} · 날짜" |
+| `SongCard` | Card, Badge, DropdownMenu + StarRating(읽기전용) | 배지: 장르(secondary)·국적·씹덕(일본)(outline), 메타 "등록: {작성자} · 날짜" |
 | `SongList` | grid + Skeleton + EmptyState | `grid-cols-1 sm:2 lg:3 xl:4`, 더 보기 링크 |
-| `SongFormDialog` | Dialog, Form, Input, Textarea, Select, Button + StarRating(입력) | 생성·수정 공용(controlled/uncontrolled) |
+| `SongFormDialog` | Dialog, Form, Input, Textarea, Select, Button + StarRating(입력) | 생성·수정 공용. 국적 Select + 일본일 때만 씹덕/비씹덕 Select 노출(useWatch) |
 | `SearchBar` | Input(+검색 아이콘) | 300ms 디바운스 → `router.replace(?q=)` |
 | `GenreFilter` | Select | 첫 항목 "전체 장르"=`all` → `?genre=` |
+| `CountryFilter` | Select(+조건부 Select) | 국적 → `?country=`. 일본 선택 시 씹덕/비씹덕 필터(`?otaku=`) 추가 노출 |
 | `StarRating` | 커스텀(lucide `Star`) | 입력=`role=radiogroup`, 읽기전용=`role=img`+sr-only |
 | `DeleteSongDialog` | AlertDialog | 파괴적 동작 → Dialog 아님, 포커스 취소부터 |
 | `Toaster` | Sonner | 루트 1회, `richColors`, `top-center` |

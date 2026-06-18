@@ -2,12 +2,14 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2, Plus } from "lucide-react"
+import { CgSpinner } from "react-icons/cg"
+import { HiOutlinePlus } from "react-icons/hi2"
 import { toast } from "sonner"
 
 import { GENRES } from "@/lib/constants/genres"
+import { COUNTRIES, JAPAN, OTAKU_TYPES } from "@/lib/constants/countries"
 import { songSchema, type SongFormValues } from "@/lib/validations/song"
 import { createSong, updateSong } from "@/lib/actions/songs"
 import { Button } from "@/components/ui/button"
@@ -44,6 +46,8 @@ export type SongFormData = {
   title: string
   artist: string
   genre: string
+  country: string
+  otakuType: string | null
   description: string | null
   rating: number
 }
@@ -85,6 +89,8 @@ export function SongFormDialog({
     },
   })
 
+  const watchedCountry = useWatch({ control: form.control, name: "country" })
+
   // 다이얼로그가 열릴 때 폼 초기화(create=빈 값, edit=기존 값)
   React.useEffect(() => {
     if (!isOpen) return
@@ -93,6 +99,8 @@ export function SongFormDialog({
         title: song.title,
         artist: song.artist,
         genre: song.genre as SongFormValues["genre"],
+        country: song.country as SongFormValues["country"],
+        otakuType: (song.otakuType ?? undefined) as SongFormValues["otakuType"],
         description: song.description ?? "",
         rating: song.rating,
       })
@@ -121,7 +129,7 @@ export function SongFormDialog({
       {showTrigger && (
         <DialogTrigger asChild>
           <Button>
-            <Plus className="size-4" /> 곡 추가
+            <HiOutlinePlus className="size-4" /> 곡 추가
           </Button>
         </DialogTrigger>
       )}
@@ -162,6 +170,72 @@ export function SongFormDialog({
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>국적</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={(v) => {
+                      field.onChange(v)
+                      // 일본이 아니면 씹덕/비씹덕 값 초기화
+                      if (v !== JAPAN) {
+                        form.setValue("otakuType", undefined, {
+                          shouldValidate: true,
+                        })
+                      }
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="국적 선택" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {watchedCountry === JAPAN && (
+              <FormField
+                control={form.control}
+                name="otakuType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>씹덕 / 비씹덕</FormLabel>
+                    <Select
+                      value={field.value ?? ""}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="분류 선택" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {OTAKU_TYPES.map((o) => (
+                          <SelectItem key={o} value={o}>
+                            {o}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
@@ -236,7 +310,7 @@ export function SongFormDialog({
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting && (
-                  <Loader2 className="size-4 animate-spin" />
+                  <CgSpinner className="size-4 animate-spin" />
                 )}
                 저장
               </Button>

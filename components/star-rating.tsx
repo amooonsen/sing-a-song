@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Star } from "lucide-react"
+import { HiStar } from "react-icons/hi2"
 
 import { cn } from "@/lib/utils"
 
@@ -34,15 +34,10 @@ export function StarRating({
         aria-label={`5점 만점에 ${value}점`}
       >
         {Array.from({ length: max }).map((_, i) => (
-          <Star
+          <HiStar
             key={i}
             aria-hidden
-            className={cn(
-              starClass,
-              i < value
-                ? "fill-star text-star"
-                : "fill-star-muted text-star-muted"
-            )}
+            className={cn(starClass, i < value ? "text-star" : "text-star-muted")}
           />
         ))}
       </div>
@@ -82,12 +77,10 @@ export function StarRating({
               }
             }}
           >
-            <Star
+            <HiStar
               className={cn(
                 starClass,
-                filled
-                  ? "fill-star text-star"
-                  : "fill-star-muted text-star-muted"
+                filled ? "text-star" : "text-star-muted"
               )}
             />
           </button>

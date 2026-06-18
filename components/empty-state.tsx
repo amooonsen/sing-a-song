@@ -1,10 +1,10 @@
-import { Music4 } from "lucide-react"
+import { HiOutlineMusicalNote } from "react-icons/hi2"
 
 export function EmptyState({ hasFilters }: { hasFilters: boolean }) {
   return (
     <div className="flex flex-col items-center gap-3 py-16 text-center">
       <div className="rounded-full bg-muted p-4">
-        <Music4 className="size-8 text-muted-foreground" />
+        <HiOutlineMusicalNote className="size-8 text-muted-foreground" />
       </div>
       <h2 className="text-lg font-semibold">
         {hasFilters ? "검색 결과가 없어요" : "아직 등록된 곡이 없어요"}

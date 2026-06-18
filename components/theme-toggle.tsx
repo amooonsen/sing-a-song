@@ -1,6 +1,6 @@
 "use client"
 
-import { Moon, Sun } from "lucide-react"
+import { HiOutlineMoon, HiOutlineSun } from "react-icons/hi2"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
@@ -16,8 +16,8 @@ export function ThemeToggle() {
       aria-label="테마 전환"
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
-      <Sun className="size-4 dark:hidden" />
-      <Moon className="hidden size-4 dark:block" />
+      <HiOutlineSun className="size-4 dark:hidden" />
+      <HiOutlineMoon className="hidden size-4 dark:block" />
     </Button>
   )
 }

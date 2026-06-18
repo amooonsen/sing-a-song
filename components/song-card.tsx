@@ -1,7 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { MoreVertical, Pencil, Trash2 } from "lucide-react"
+import {
+  HiOutlineEllipsisVertical,
+  HiOutlinePencilSquare,
+  HiOutlineTrash,
+} from "react-icons/hi2"
 
 import type { SongWithAuthor } from "@/lib/data/songs"
 import { Badge } from "@/components/ui/badge"
@@ -41,6 +45,8 @@ export function SongCard({ song }: { song: SongWithAuthor }) {
     title: song.title,
     artist: song.artist,
     genre: song.genre,
+    country: song.country,
+    otakuType: song.otaku_type,
     description: song.description,
     rating: song.rating,
   }
@@ -58,18 +64,18 @@ export function SongCard({ song }: { song: SongWithAuthor }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon-sm" aria-label="곡 메뉴">
-                <MoreVertical className="size-4" />
+                <HiOutlineEllipsisVertical className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={() => setEditOpen(true)}>
-                <Pencil className="size-4" /> 수정
+                <HiOutlinePencilSquare className="size-4" /> 수정
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onSelect={() => setDeleteOpen(true)}
               >
-                <Trash2 className="size-4" /> 삭제
+                <HiOutlineTrash className="size-4" /> 삭제
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -77,8 +83,14 @@ export function SongCard({ song }: { song: SongWithAuthor }) {
       </CardHeader>
 
       <CardContent className="flex-1 space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <Badge variant="secondary">{song.genre}</Badge>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant="secondary">{song.genre}</Badge>
+            <Badge variant="outline">{song.country}</Badge>
+            {song.otaku_type && (
+              <Badge variant="outline">{song.otaku_type}</Badge>
+            )}
+          </div>
           <StarRating value={song.rating} readOnly size="sm" />
         </div>
         {song.description && (

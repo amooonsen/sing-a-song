@@ -47,6 +47,8 @@ export type Database = {
           title: string
           artist: string
           genre: string
+          country: string
+          otaku_type: string | null
           description: string | null
           rating: number
           created_by: string | null
@@ -59,6 +61,8 @@ export type Database = {
           title: string
           artist: string
           genre: string
+          country: string
+          otaku_type?: string | null
           description?: string | null
           rating: number
           created_by?: string | null
@@ -71,6 +75,8 @@ export type Database = {
           title?: string
           artist?: string
           genre?: string
+          country?: string
+          otaku_type?: string | null
           description?: string | null
           rating?: number
           created_by?: string | null

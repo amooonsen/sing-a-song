@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2 } from "lucide-react"
+import { CgSpinner } from "react-icons/cg"
 import { toast } from "sonner"
 
 import { login, signup } from "@/lib/actions/auth"
@@ -127,7 +127,7 @@ export function AuthForm() {
                   disabled={loginForm.formState.isSubmitting}
                 >
                   {loginForm.formState.isSubmitting && (
-                    <Loader2 className="size-4 animate-spin" />
+                    <CgSpinner className="size-4 animate-spin" />
                   )}
                   로그인
                 </Button>
@@ -199,7 +199,7 @@ export function AuthForm() {
                   disabled={signupForm.formState.isSubmitting}
                 >
                   {signupForm.formState.isSubmitting && (
-                    <Loader2 className="size-4 animate-spin" />
+                    <CgSpinner className="size-4 animate-spin" />
                   )}
                   회원가입
                 </Button>

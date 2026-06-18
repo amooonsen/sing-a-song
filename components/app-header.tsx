@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { LogOut } from "lucide-react"
+import { HiOutlineArrowRightOnRectangle } from "react-icons/hi2"
 
 import { signout } from "@/lib/actions/auth"
 import { createClient } from "@/lib/supabase/server"
@@ -61,7 +61,7 @@ export async function AppHeader() {
               <form action={signout}>
                 <DropdownMenuItem variant="destructive" asChild>
                   <button type="submit" className="w-full">
-                    <LogOut className="size-4" /> 로그아웃
+                    <HiOutlineArrowRightOnRectangle className="size-4" /> 로그아웃
                   </button>
                 </DropdownMenuItem>
               </form>

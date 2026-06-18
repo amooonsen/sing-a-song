@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { JAPAN } from "@/lib/constants/countries"
 import type { Tables } from "@/types/database"
 
 export const PAGE_SIZE = 24
@@ -10,6 +11,9 @@ export type SongWithAuthor = Tables<"songs"> & {
 export type SongQuery = {
   q?: string
   genre?: string
+  country?: string
+  /** 일본 곡 한정 씹덕/비씹덕 필터 */
+  otaku?: string
   /** 누적 페이지 수 (1 = 첫 PAGE_SIZE개) */
   page?: number
 }
@@ -22,6 +26,8 @@ function sanitizeTerm(input: string): string {
 export async function getSongs({
   q,
   genre,
+  country,
+  otaku,
   page = 1,
 }: SongQuery): Promise<{ songs: SongWithAuthor[]; hasMore: boolean }> {
   const supabase = await createClient()
@@ -35,6 +41,14 @@ export async function getSongs({
 
   if (genre && genre !== "all") {
     query = query.eq("genre", genre)
+  }
+
+  if (country && country !== "all") {
+    query = query.eq("country", country)
+    // 씹덕/비씹덕 필터는 일본 곡에만 적용
+    if (country === JAPAN && otaku && otaku !== "all") {
+      query = query.eq("otaku_type", otaku)
+    }
   }
 
   const term = q ? sanitizeTerm(q) : ""
