@@ -147,36 +147,58 @@ export function SongBrowser({
     <div className="space-y-8">
       {featured && <Hero song={featured} />}
 
-      {/* 섹션 헤더 + 곡 추가 */}
+      {/* 섹션 헤더 */}
       <div className="space-y-4">
-        <div className="flex items-end justify-between gap-4">
-          <div className="flex items-baseline gap-3">
-            <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">
-              선곡집
-            </h2>
-            <span className="font-mono text-xs text-muted-foreground tabular-nums">
-              {total > 0 ? `${total}곡` : "첫 곡을 기다리는 중"}
-              {lastAddedAt && total > 0 && (
-                <> · {formatDate(lastAddedAt)} 업데이트</>
-              )}
-            </span>
+        <div className="flex items-baseline gap-3">
+          <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">
+            선곡집
+          </h2>
+          <span className="font-mono text-xs text-muted-foreground tabular-nums">
+            {total > 0 ? `${total}곡` : "첫 곡을 기다리는 중"}
+            {lastAddedAt && total > 0 && (
+              <> · {formatDate(lastAddedAt)} 업데이트</>
+            )}
+          </span>
+        </div>
+
+        {/* 곡 추가 CTA 배너 — 히어로와 같은 톤의 옅은 글로우 */}
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-6">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(80% 140% at 0% 0%, color-mix(in oklab, var(--g1) 22%, transparent), transparent 60%), radial-gradient(70% 130% at 100% 100%, color-mix(in oklab, var(--g2) 20%, transparent), transparent 60%)",
+            }}
+          />
+          <div className="relative flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-base font-extrabold tracking-tight sm:text-lg">
+                인생곡이 있나요?
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                선곡집에 한 곡 더해주세요 — 별점·한줄평까지
+              </p>
+            </div>
+            <SongFormDialog showTrigger />
           </div>
-          <SongFormDialog showTrigger />
         </div>
 
         {/* 검색 + 필터 툴바 */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <SearchBar
-            defaultValue={q}
-            isPending={isPending}
-            onSearch={(value) =>
-              navigate((p) => {
-                if (value) p.set("q", value)
-                else p.delete("q")
-              })
-            }
-          />
-          <div className="flex flex-wrap gap-2">
+          <div className="min-w-0 sm:flex-1">
+            <SearchBar
+              defaultValue={q}
+              isPending={isPending}
+              onSearch={(value) =>
+                navigate((p) => {
+                  if (value) p.set("q", value)
+                  else p.delete("q")
+                })
+              }
+            />
+          </div>
+          <div className="flex flex-wrap gap-2 sm:flex-nowrap sm:shrink-0">
             <GenreFilter
               value={genre}
               active={genre !== ALL_GENRES}

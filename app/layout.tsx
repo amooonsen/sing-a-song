@@ -1,10 +1,14 @@
 import type { Metadata } from "next"
 import { Geist_Mono } from "next/font/google"
 import localFont from "next/font/local"
+import NextTopLoader from "nextjs-toploader"
 import "./globals.css"
 
-import { ThemeProvider } from "@/components/theme-provider"
+import { SiteBackdrop } from "@/components/site-backdrop"
+// 유리 렌즈 커서(fluid-glass) — 일단 비활성화. 다시 켜려면 아래 import 와 <GlassCursor /> 주석 해제.
+// import GlassCursor from "@/components/glass-cursor"
 import { RefreshProvider } from "@/components/refresh-provider"
+import { SmoothScrollProvider } from "@/components/smooth-scroll-provider"
 import { Toaster } from "@/components/ui/sonner"
 
 // 본문·UI 한글 서체. 가변 woff2 자가호스팅 → 한글이 더 이상 OS 폴백으로 떨어지지 않는다.
@@ -22,7 +26,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "노래 추천",
+  title: "OCHU",
   description: "함께 만드는 노래 추천 리스트",
 }
 
@@ -34,21 +38,23 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      suppressHydrationWarning
-      className={`${pretendard.variable} ${geistMono.variable} h-full antialiased`}
+      className={`dark ${pretendard.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
+        <SiteBackdrop />
+        {/* <GlassCursor /> */}
+        <NextTopLoader
+          color="#ff4d7d"
+          height={3}
+          showSpinner={false}
+          shadow="0 0 10px #ff4d7d,0 0 5px #9b5de5"
+        />
+        <SmoothScrollProvider>
           <RefreshProvider>
             {children}
             <Toaster richColors position="top-center" />
           </RefreshProvider>
-        </ThemeProvider>
+        </SmoothScrollProvider>
       </body>
     </html>
   )

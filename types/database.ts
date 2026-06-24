@@ -8,8 +8,9 @@
  *
  * (= supabase gen types typescript --linked > types/database.ts)
  *
- * 현재 상태: 20260623000000_per_user_ratings.sql 적용 후 기준.
+ * 현재 상태: 20260624030000_song_scraps.sql 적용 후 기준.
  *  - song_ratings / comment_likes 테이블 추가
+ *  - song_scraps 테이블 추가(곡 스크랩, 사용자별 개인 보관함)
  *  - songs.rating_avg / rating_count 추가
  *  - songs.rating 은 NOT NULL 해제(백업 보존, nullable) — description 도 보존
  *  - 레거시 컬럼 DROP(20260624000000)은 검증 후 적용 → 그때 재생성 필요
@@ -192,6 +193,39 @@ export type Database = {
           },
           {
             foreignKeyName: "comment_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      song_scraps: {
+        Row: {
+          song_id: string
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          song_id: string
+          user_id: string
+          created_at?: string
+        }
+        Update: {
+          song_id?: string
+          user_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "song_scraps_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "song_scraps_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
