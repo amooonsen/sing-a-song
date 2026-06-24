@@ -59,7 +59,7 @@ function TopProgressBar({ active }: { active: boolean }) {
       )}
     >
       {active && (
-        <div className="loading-bar-indicator h-full w-1/3 bg-primary" />
+        <div className="loading-bar-indicator h-full w-1/3 bg-brand" />
       )}
     </div>
   )

@@ -47,7 +47,7 @@ export function SearchBar({ defaultValue, isPending, onSearch }: SearchBarProps)
         placeholder="제목 또는 가수로 검색"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="px-8"
+        className="h-10 rounded-full px-8"
       />
       <div className="absolute top-1/2 right-1 -translate-y-1/2">
         {isPending ? (

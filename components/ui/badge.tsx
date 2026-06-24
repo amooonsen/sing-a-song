@@ -18,6 +18,9 @@ const badgeVariants = cva(
           "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
+        // 의미색 칩: 호출부에서 style={{ "--tone": "var(--country-kr)" }} 주입.
+        // 배경은 옅은 틴트, 텍스트는 잉크(foreground)로 두어 어떤 hue에서도 AA 유지.
+        tone: "border-[color-mix(in_oklab,var(--tone)_36%,transparent)] bg-[color-mix(in_oklab,var(--tone)_15%,var(--card))] text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
     },
