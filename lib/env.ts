@@ -16,3 +16,17 @@ export function getSupabaseEnv() {
 
   return { url, anonKey }
 }
+
+/**
+ * YouTube Data API v3 키(서버 전용). 곡 등록 다이얼로그의 검색/링크 조회에만 사용.
+ * 미설정 시 호출부에서 잡아 "직접 입력" 으로 우아하게 폴백한다(앱이 죽지 않음).
+ */
+export function getYouTubeApiKey(): string {
+  const key = process.env.YOUTUBE_API_KEY
+  if (!key) {
+    throw new Error(
+      "환경변수 YOUTUBE_API_KEY 가 설정되지 않았습니다. .env.local 을 확인하세요 (.env.local.example 참고)."
+    )
+  }
+  return key
+}

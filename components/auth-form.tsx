@@ -71,10 +71,12 @@ export function AuthForm() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="items-center text-center">
-        <div className="mb-1 flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
+        <div className="bg-grad mb-1 flex size-12 items-center justify-center rounded-2xl text-white shadow-[0_12px_30px_-12px_color-mix(in_oklab,var(--g1)_70%,transparent)]">
           <HiMusicalNote className="size-6" />
         </div>
-        <CardTitle className="text-xl">노래 추천</CardTitle>
+        <CardTitle className="text-3xl font-extrabold tracking-tight">
+          노래 추천
+        </CardTitle>
         <CardDescription>함께 만드는 노래 추천 리스트</CardDescription>
       </CardHeader>
       <CardContent>
@@ -127,6 +129,7 @@ export function AuthForm() {
                 />
                 <Button
                   type="submit"
+                  variant="brand"
                   className="w-full"
                   disabled={loginForm.formState.isSubmitting}
                 >
@@ -216,6 +219,7 @@ export function AuthForm() {
                 />
                 <Button
                   type="submit"
+                  variant="brand"
                   className="w-full"
                   disabled={signupForm.formState.isSubmitting}
                 >

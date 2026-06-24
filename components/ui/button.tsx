@@ -10,6 +10,8 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        brand:
+          "bg-[image:var(--grad)] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.35)] shadow-[0_10px_26px_-10px_color-mix(in_oklab,var(--g1)_75%,transparent)] hover:opacity-90 focus-visible:ring-brand/40",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:

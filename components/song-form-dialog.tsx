@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useForm, useWatch } from "react-hook-form"
+import { useForm, useWatch, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CgSpinner } from "react-icons/cg"
 import { HiOutlinePlus } from "react-icons/hi2"
@@ -9,8 +9,15 @@ import { toast } from "sonner"
 
 import { GENRES } from "@/lib/constants/genres"
 import { COUNTRIES, JAPAN, OTAKU_TYPES } from "@/lib/constants/countries"
-import { songSchema, type SongFormValues } from "@/lib/validations/song"
+import { countryColorVar } from "@/lib/country-style"
+import {
+  createSongSchema,
+  updateSongSchema,
+  type CreateSongValues,
+} from "@/lib/validations/song"
 import { createSong, updateSong } from "@/lib/actions/songs"
+import { searchYouTube } from "@/lib/actions/youtube"
+import type { YouTubeMatch } from "@/lib/youtube"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -41,6 +48,7 @@ import {
 import { StarRating } from "@/components/star-rating"
 import { useRefresh } from "@/components/refresh-provider"
 
+/** 수정 다이얼로그가 받는 곡 메타데이터(평점/한줄평 제외 — 평가는 상세 페이지에서) */
 export type SongFormData = {
   id: string
   title: string
@@ -48,12 +56,13 @@ export type SongFormData = {
   genre: string
   country: string
   otakuType: string | null
-  description: string | null
-  rating: number
+  url: string | null
+  thumbnailUrl: string | null
+  youtubeVideoId: string | null
 }
 
 type SongFormDialogProps = {
-  /** edit 모드면 기존 곡 데이터 */
+  /** edit 모드면 기존 곡 메타데이터 */
   song?: SongFormData
   /** controlled open (카드 메뉴에서 수정 열 때) */
   open?: boolean
@@ -79,38 +88,118 @@ export function SongFormDialog({
     else setInternalOpen(next)
   }
 
-  const form = useForm<SongFormValues>({
-    resolver: zodResolver(songSchema),
+  // 폼 값 타입은 생성 스키마(상위집합)로 통일. 수정 모드에선 rating/comment/isSpoiler 미사용.
+  const form = useForm<CreateSongValues>({
+    resolver: zodResolver(
+      isEdit ? updateSongSchema : createSongSchema
+    ) as unknown as Resolver<CreateSongValues>,
     defaultValues: {
       title: "",
       artist: "",
-      description: "",
+      url: "",
+      thumbnailUrl: "",
+      youtubeVideoId: "",
+      comment: "",
       rating: 0,
+      isSpoiler: false,
     },
   })
 
   const watchedCountry = useWatch({ control: form.control, name: "country" })
 
-  // 다이얼로그가 열릴 때 폼 초기화(create=빈 값, edit=기존 값)
+  // YouTube 파인더(선택) — 검색어/링크 → 매치 → 선택 시 제목·가수·썸네일 자동 채움.
+  // URL/ID 입력이면 1유닛(videos.list), 일반 검색이면 100유닛(search.list, 24h 캐시).
+  const pickedThumb = useWatch({ control: form.control, name: "thumbnailUrl" })
+  const watchedTitle = useWatch({ control: form.control, name: "title" })
+  const [ytText, setYtText] = React.useState("")
+  const [ytMatches, setYtMatches] = React.useState<YouTubeMatch[]>([])
+  const [ytNote, setYtNote] = React.useState<string | null>(null)
+  const [ytPending, startYt] = React.useTransition()
+  const ytReq = React.useRef(0)
+
+  // 다이얼로그가 새로 열릴 때 파인더 상태 초기화 (렌더 중 보정 — search-bar 패턴)
+  const [finderMark, setFinderMark] = React.useState(isOpen)
+  if (isOpen !== finderMark) {
+    setFinderMark(isOpen)
+    if (isOpen) {
+      setYtText("")
+      setYtMatches([])
+      setYtNote(null)
+    }
+  }
+
+  // 입력 디바운스(300ms). 오래된 응답은 무시(stale guard).
+  React.useEffect(() => {
+    const q = ytText.trim()
+    if (q.length < 2) return
+    const handler = setTimeout(() => {
+      const reqId = ++ytReq.current
+      startYt(async () => {
+        const res = await searchYouTube(q)
+        if (reqId !== ytReq.current) return
+        if (!res.ok) {
+          setYtMatches([])
+          setYtNote(res.message)
+          return
+        }
+        setYtNote(null)
+        setYtMatches(res.matches)
+      })
+    }, 300)
+    return () => clearTimeout(handler)
+  }, [ytText])
+
+  function pickYouTube(m: YouTubeMatch) {
+    form.setValue("title", m.title, { shouldValidate: true })
+    form.setValue("artist", m.channelTitle, { shouldValidate: true })
+    form.setValue("url", m.url)
+    form.setValue("thumbnailUrl", m.thumbnailUrl)
+    form.setValue("youtubeVideoId", m.videoId)
+    setYtMatches([])
+    setYtText("")
+    setYtNote(null)
+  }
+
+  function clearYouTube() {
+    form.setValue("url", "")
+    form.setValue("thumbnailUrl", "")
+    form.setValue("youtubeVideoId", "")
+  }
+
+  // 다이얼로그가 열릴 때 폼 초기화(create=빈 값, edit=기존 메타데이터)
   React.useEffect(() => {
     if (!isOpen) return
     if (song) {
       form.reset({
         title: song.title,
         artist: song.artist,
-        genre: song.genre as SongFormValues["genre"],
-        country: song.country as SongFormValues["country"],
-        otakuType: (song.otakuType ?? undefined) as SongFormValues["otakuType"],
-        description: song.description ?? "",
-        rating: song.rating,
+        genre: song.genre as CreateSongValues["genre"],
+        country: song.country as CreateSongValues["country"],
+        otakuType: (song.otakuType ??
+          undefined) as CreateSongValues["otakuType"],
+        url: song.url ?? "",
+        thumbnailUrl: song.thumbnailUrl ?? "",
+        youtubeVideoId: song.youtubeVideoId ?? "",
+        rating: 0,
+        comment: "",
+        isSpoiler: false,
       })
     } else {
-      form.reset({ title: "", artist: "", description: "", rating: 0 })
+      form.reset({
+        title: "",
+        artist: "",
+        url: "",
+        thumbnailUrl: "",
+        youtubeVideoId: "",
+        comment: "",
+        rating: 0,
+        isSpoiler: false,
+      })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, song])
 
-  async function onSubmit(values: SongFormValues) {
+  async function onSubmit(values: CreateSongValues) {
     const res = isEdit
       ? await updateSong(song!.id, values)
       : await createSong(values)
@@ -135,7 +224,7 @@ export function SongFormDialog({
     >
       {showTrigger && (
         <DialogTrigger asChild>
-          <Button>
+          <Button variant="brand">
             <HiOutlinePlus className="size-4" /> 곡 추가
           </Button>
         </DialogTrigger>
@@ -144,12 +233,90 @@ export function SongFormDialog({
         <DialogHeader>
           <DialogTitle>{isEdit ? "곡 수정" : "곡 추가"}</DialogTitle>
           <DialogDescription>
-            함께 보는 추천 리스트에 곡 정보를 입력하세요.
+            {isEdit
+              ? "곡 정보를 수정하세요. 평점·한줄평은 상세 페이지에서 남길 수 있어요."
+              : "곡 정보와 내 첫 평가(별점·한줄평)를 입력하세요."}
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* YouTube 파인더 — 선택. 제목·가수·썸네일 자동 채움 */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">
+                YouTube에서 찾기{" "}
+                <span className="font-normal text-muted-foreground">(선택)</span>
+              </p>
+              {pickedThumb ? (
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={pickedThumb}
+                    alt=""
+                    className="size-12 shrink-0 rounded-md object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
+                      {watchedTitle || "선택된 영상"}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      YouTube 썸네일 연결됨
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearYouTube}
+                  >
+                    지우기
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <Input
+                    value={ytText}
+                    onChange={(e) => setYtText(e.target.value)}
+                    placeholder="곡 제목 검색 또는 YouTube 링크 붙여넣기"
+                  />
+                  {ytPending && (
+                    <CgSpinner className="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                  )}
+                  {ytText.trim().length >= 2 && ytMatches.length > 0 && (
+                    <ul className="absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-border bg-popover p-1 shadow-lg">
+                      {ytMatches.map((m) => (
+                        <li key={m.videoId}>
+                          <button
+                            type="button"
+                            onClick={() => pickYouTube(m)}
+                            className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-muted"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={m.thumbnailUrl}
+                              alt=""
+                              className="size-10 shrink-0 rounded object-cover"
+                            />
+                            <span className="min-w-0">
+                              <span className="block truncate text-sm font-medium">
+                                {m.title}
+                              </span>
+                              <span className="block truncate text-xs text-muted-foreground">
+                                {m.channelTitle}
+                              </span>
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {ytText.trim().length >= 2 && ytNote && (
+                    <p className="mt-1 text-xs text-muted-foreground">{ytNote}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
             <FormField
               control={form.control}
               name="title"
@@ -204,7 +371,14 @@ export function SongFormDialog({
                     <SelectContent>
                       {COUNTRIES.map((c) => (
                         <SelectItem key={c} value={c}>
-                          {c}
+                          <span className="flex items-center gap-2">
+                            <span
+                              aria-hidden
+                              className="size-2 rounded-full"
+                              style={{ background: countryColorVar(c) }}
+                            />
+                            {c}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -250,10 +424,7 @@ export function SongFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>장르</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="장르 선택" />
@@ -272,40 +443,67 @@ export function SongFormDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="rating"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>별점</FormLabel>
-                  <FormControl>
-                    <StarRating
-                      value={field.value ?? 0}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* create 모드에서만: 내 첫 평가(별점 + 한줄평 + 스포일러) */}
+            {!isEdit && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="rating"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>내 별점</FormLabel>
+                      <FormControl>
+                        <StarRating
+                          value={field.value ?? 0}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>추천 사유 (선택)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      rows={3}
-                      placeholder="이 곡을 추천하는 이유를 적어주세요"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="comment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>한줄평 (선택)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={3}
+                          placeholder="이 곡에 대한 한줄평을 남겨주세요"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isSpoiler"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <label className="flex w-fit cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                          <input
+                            type="checkbox"
+                            checked={field.value ?? false}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                            className="size-4"
+                            style={{ accentColor: "var(--brand)" }}
+                          />
+                          스포일러 포함
+                        </label>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
             <DialogFooter>
               <Button
@@ -315,7 +513,11 @@ export function SongFormDialog({
               >
                 취소
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button
+                type="submit"
+                variant="brand"
+                disabled={form.formState.isSubmitting}
+              >
                 {form.formState.isSubmitting && (
                   <CgSpinner className="size-4 animate-spin" />
                 )}
