@@ -51,7 +51,7 @@ create table public.songs (
 
   constraint songs_rating_check check (rating between 1 and 5),
   constraint songs_genre_check check (
-    genre in ('발라드','댄스','힙합','R&B','록','인디','재즈','클래식','트로트','OST','K-팝','팝')
+    genre in ('발라드','댄스','힙합','R&B','록','인디','재즈','클래식','트로트','OST','K-팝','팝','애매함')
   ),
   constraint songs_title_len  check (char_length(title)  between 1 and 200),
   constraint songs_artist_len check (char_length(artist) between 1 and 100),

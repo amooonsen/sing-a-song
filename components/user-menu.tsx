@@ -1,8 +1,10 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import {
   HiOutlineArrowRightOnRectangle,
+  HiOutlineBookmark,
   HiOutlinePencil,
 } from "react-icons/hi2"
 
@@ -43,6 +45,11 @@ export function UserMenu({ displayName }: { displayName: string }) {
             {displayName}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/me">
+              <HiOutlineBookmark className="size-4" /> 내 스크랩
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setNameOpen(true)}>
             <HiOutlinePencil className="size-4" /> 이름 변경
           </DropdownMenuItem>

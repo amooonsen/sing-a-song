@@ -125,7 +125,7 @@ export function StarRating({
             type="button"
             tabIndex={-1}
             aria-hidden
-            className="cursor-pointer"
+            className="cursor-pointer transition-transform active:scale-90"
             onPointerMove={(e) => setHover(valueFromPointer(e, star))}
             onPointerDown={(e) => onChange?.(valueFromPointer(e, star))}
           >

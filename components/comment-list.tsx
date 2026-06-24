@@ -33,9 +33,9 @@ export function CommentList({ comments, songId }: CommentListProps) {
   return (
     <ul className="space-y-3">
       {comments.map((c) => (
-        // 키에 like_count/liked_by_me 포함 → 서버 재조회(refresh)로 값이 바뀌면
-        // 리마운트되어 낙관적 로컬 상태(좋아요 수/하트)가 최신 props 로 갱신된다.
-        <li key={`${c.id}-${c.like_count}-${c.liked_by_me}`}>
+        // 안정 key(id) — 서버 재조회로 좋아요 수/하트가 바뀌어도 리마운트하지 않는다.
+        // (값 동기화는 CommentItem 이 렌더 중 props 비교로 처리 → 펼침/스포일러 상태 보존)
+        <li key={c.id}>
           <CommentItem comment={c} songId={songId} />
         </li>
       ))}
@@ -56,6 +56,21 @@ function CommentItem({
   const [expanded, setExpanded] = React.useState(false)
   const [pending, startTransition] = React.useTransition()
 
+  // 서버 truth 가 바뀌면(다른 사용자 좋아요 등으로 재조회) 리마운트 없이 로컬 상태를 재동기화한다.
+  // React 권장 "렌더 중 state 조정" 패턴 — 펼침(expanded)·스포일러 공개(revealed) 상태는 보존된다.
+  const [serverLike, setServerLike] = React.useState({
+    liked: comment.liked_by_me,
+    count: comment.like_count,
+  })
+  if (
+    serverLike.liked !== comment.liked_by_me ||
+    serverLike.count !== comment.like_count
+  ) {
+    setServerLike({ liked: comment.liked_by_me, count: comment.like_count })
+    setLiked(comment.liked_by_me)
+    setCount(comment.like_count)
+  }
+
   const name = comment.profiles?.display_name ?? "탈퇴한 사용자"
   const text = comment.comment ?? ""
   const isLong = text.length > 120
@@ -72,6 +87,14 @@ function CommentItem({
         setLiked(prevLiked)
         setCount(prevCount)
         toast.error(res.message)
+        return
+      }
+      // 좋아요를 새로 누른 경우에만(취소 제외) 토스트. 연타 시 같은 id 로 갱신해 스팸 방지.
+      if (!prevLiked) {
+        toast.success("이 한줄평을 좋아합니다", {
+          id: `like-${comment.id}`,
+          description: `${name} 님의 한줄평`,
+        })
       }
     })
   }
@@ -110,7 +133,7 @@ function CommentItem({
                 <button
                   type="button"
                   onClick={() => setExpanded((v) => !v)}
-                  className="mt-1 text-xs font-medium text-brand hover:underline"
+                  className="mt-1 cursor-pointer rounded text-xs font-medium text-brand transition-colors hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   {expanded ? "접기" : "더 보기"}
                 </button>
@@ -120,7 +143,7 @@ function CommentItem({
             <button
               type="button"
               onClick={() => setRevealed(true)}
-              className="text-sm text-muted-foreground italic hover:text-foreground"
+              className="cursor-pointer rounded text-sm text-muted-foreground italic transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
               스포일러가 포함된 한줄평이에요 — 보기
             </button>
@@ -135,7 +158,7 @@ function CommentItem({
         aria-pressed={liked}
         aria-label="좋아요"
         className={cn(
-          "mt-2 inline-flex items-center gap-1 text-xs font-medium transition-colors",
+          "mt-2 inline-flex cursor-pointer items-center gap-1 rounded text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-70",
           liked ? "text-brand" : "text-muted-foreground hover:text-foreground"
         )}
       >

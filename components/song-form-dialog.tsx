@@ -4,7 +4,6 @@ import * as React from "react"
 import { useForm, useWatch, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CgSpinner } from "react-icons/cg"
-import { HiOutlinePlus } from "react-icons/hi2"
 import { toast } from "sonner"
 
 import { GENRES } from "@/lib/constants/genres"
@@ -18,6 +17,7 @@ import {
 import { createSong, updateSong } from "@/lib/actions/songs"
 import { searchYouTube } from "@/lib/actions/youtube"
 import type { YouTubeMatch } from "@/lib/youtube"
+import { AddSongCta } from "@/components/add-song-cta"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -224,9 +224,7 @@ export function SongFormDialog({
     >
       {showTrigger && (
         <DialogTrigger asChild>
-          <Button variant="brand">
-            <HiOutlinePlus className="size-4" /> 곡 추가
-          </Button>
+          <AddSongCta />
         </DialogTrigger>
       )}
       <DialogContent className="sm:max-w-md">
@@ -289,7 +287,7 @@ export function SongFormDialog({
                           <button
                             type="button"
                             onClick={() => pickYouTube(m)}
-                            className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-muted"
+                            className="flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img

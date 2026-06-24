@@ -74,8 +74,8 @@ export function AuthForm() {
         <div className="bg-grad mb-1 flex size-12 items-center justify-center rounded-2xl text-white shadow-[0_12px_30px_-12px_color-mix(in_oklab,var(--g1)_70%,transparent)]">
           <HiMusicalNote className="size-6" />
         </div>
-        <CardTitle className="text-3xl font-extrabold tracking-tight">
-          노래 추천
+        <CardTitle className="text-grad text-4xl font-black tracking-[0.14em]">
+          OCHU
         </CardTitle>
         <CardDescription>함께 만드는 노래 추천 리스트</CardDescription>
       </CardHeader>

@@ -16,6 +16,7 @@ export const GENRES = [
   "OST",
   "K-팝",
   "팝",
+  "애매함",
 ] as const
 
 export type Genre = (typeof GENRES)[number]

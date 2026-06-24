@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentUser } from "@/lib/supabase/user"
 import { JAPAN } from "@/lib/constants/countries"
 import type { Tables } from "@/types/database"
 
@@ -9,6 +10,30 @@ export type SongSort = "recent" | "rating" | "popular"
 
 export type SongWithAuthor = Tables<"songs"> & {
   profiles: { display_name: string | null } | null
+  /** 현재 사용자가 이 곡을 스크랩(찜)했는지 — 비로그인/미조회 시 false */
+  scrapped_by_me?: boolean
+}
+
+/** 곡 목록에 현재 사용자의 스크랩 여부를 표시(부재 시 false). 비로그인이면 그대로 반환. */
+async function markScrapped<T extends { id: string }>(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  songs: T[]
+): Promise<(T & { scrapped_by_me: boolean })[]> {
+  const user = await getCurrentUser()
+  if (!user || songs.length === 0) {
+    return songs.map((s) => ({ ...s, scrapped_by_me: false }))
+  }
+
+  const { data } = await supabase
+    .from("song_scraps")
+    .select("song_id")
+    .eq("user_id", user.id)
+    .in(
+      "song_id",
+      songs.map((s) => s.id)
+    )
+  const scrapped = new Set((data ?? []).map((r) => r.song_id))
+  return songs.map((s) => ({ ...s, scrapped_by_me: scrapped.has(s.id) }))
 }
 
 export type RatingWithAuthor = Tables<"song_ratings"> & {
@@ -111,8 +136,9 @@ export async function getSongs({
     throw new Error(error.message)
   }
 
-  const songs = (data ?? []) as unknown as SongWithAuthor[]
-  return { songs, hasMore: songs.length === limit }
+  const rows = (data ?? []) as unknown as SongWithAuthor[]
+  const songs = await markScrapped(supabase, rows)
+  return { songs, hasMore: rows.length === limit }
 }
 
 /**
@@ -161,9 +187,7 @@ export async function getSongsMeta(): Promise<{
  */
 export async function getSong(id: string): Promise<SongDetail | null> {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
 
   // 1) 곡 + 작성자 + 집계 (정션 테이블로 인한 모호성 → FK 명시)
   const songPromise = supabase
@@ -185,10 +209,21 @@ export async function getSong(id: string): Promise<SongDetail | null> {
     ? supabase.from("comment_likes").select("song_rating_id").eq("user_id", user.id)
     : Promise.resolve({ data: [], error: null })
 
-  const [songRes, commentsRes, likesRes] = await Promise.all([
+  // 4) 현재 사용자가 이 곡을 스크랩했는지
+  const myScrapPromise = user
+    ? supabase
+        .from("song_scraps")
+        .select("song_id")
+        .eq("song_id", id)
+        .eq("user_id", user.id)
+        .maybeSingle()
+    : Promise.resolve({ data: null, error: null })
+
+  const [songRes, commentsRes, likesRes, scrapRes] = await Promise.all([
     songPromise,
     commentsPromise,
     myLikesPromise,
+    myScrapPromise,
   ])
 
   if (songRes.error) {
@@ -200,6 +235,7 @@ export async function getSong(id: string): Promise<SongDetail | null> {
   if (commentsRes.error) throw new Error(commentsRes.error.message)
 
   const song = songRes.data as unknown as SongWithAuthor
+  song.scrapped_by_me = Boolean(scrapRes.data)
   const allComments = (commentsRes.data ?? []) as unknown as RatingWithAuthor[]
   const likedIds = new Set(
     ((likesRes.data ?? []) as unknown as { song_rating_id: string }[]).map(
@@ -224,4 +260,32 @@ export async function getSong(id: string): Promise<SongDetail | null> {
   }
 
   return { song, myRating, comments, distribution }
+}
+
+/**
+ * 프로필 "내 스크랩" — 현재 사용자가 스크랩한 곡 목록(스크랩 최신순).
+ * 비로그인이면 null(페이지에서 로그인 유도). song_scraps RLS 로 본인 행만 조회됨.
+ */
+export async function getMyScrappedSongs(): Promise<SongWithAuthor[] | null> {
+  const supabase = await createClient()
+  const user = await getCurrentUser()
+  if (!user) return null
+
+  const { data, error } = await supabase
+    .from("song_scraps")
+    .select(
+      "created_at, songs(*, profiles!songs_created_by_fkey(display_name))"
+    )
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+
+  if (error) throw new Error(error.message)
+
+  // 임베드된 곡만 추출(곡 삭제 시 cascade 로 행도 사라지므로 보통 non-null)
+  const songs = (data ?? [])
+    .map((row) => (row as unknown as { songs: SongWithAuthor | null }).songs)
+    .filter((s): s is SongWithAuthor => s != null)
+    .map((s) => ({ ...s, scrapped_by_me: true }))
+
+  return songs
 }
