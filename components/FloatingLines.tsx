@@ -226,6 +226,10 @@ type FloatingLinesProps = {
   mouseDamping?: number;
   parallax?: boolean;
   parallaxStrength?: number;
+  /** 초당 렌더 프레임 상한. 느린 드리프트 배경은 30이면 60과 사실상 구분 불가 — GPU 부하 절감. */
+  targetFps?: number;
+  /** devicePixelRatio 상한. 망막에서 픽셀 채움(프래그먼트 셰이더 호출)이 제곱으로 줄어든다. */
+  maxDpr?: number;
   mixBlendMode?: React.CSSProperties['mixBlendMode'];
 };
 
@@ -268,6 +272,8 @@ export default function FloatingLines({
   mouseDamping = 0.05,
   parallax = true,
   parallaxStrength = 0.2,
+  targetFps = 60,
+  maxDpr = 2,
   mixBlendMode = 'screen'
 }: FloatingLinesProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -312,7 +318,7 @@ export default function FloatingLines({
     camera.position.z = 1;
 
     const renderer = new WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
     container.appendChild(renderer.domElement);
@@ -441,11 +447,23 @@ export default function FloatingLines({
       renderer.domElement.addEventListener('pointerleave', handlePointerLeave);
     }
 
+    // 프레임 상한(targetFps) + 탭 비활성 시 정지로 상시 GPU/합성 부하를 줄인다.
+    // rAF 는 매 프레임 예약하되 draw 만 throttle — 시간(clock) 기반이라 드리프트는 매끄럽게 유지된다.
+    const minDelta = targetFps > 0 ? 1 / targetFps : 0;
+    let lastDraw = -Infinity;
     let raf = 0;
     const renderLoop = () => {
       if (!active) return;
+      raf = requestAnimationFrame(renderLoop);
 
-      uniforms.iTime.value = clock.getElapsedTime();
+      // 백그라운드 탭에선 그리지 않음(브라우저가 rAF 를 멈추지 않는 환경 대비).
+      if (typeof document !== 'undefined' && document.hidden) return;
+
+      const elapsed = clock.getElapsedTime();
+      if (elapsed - lastDraw < minDelta) return;
+      lastDraw = elapsed;
+
+      uniforms.iTime.value = elapsed;
 
       if (interactive) {
         currentMouseRef.current.lerp(targetMouseRef.current, mouseDamping);
@@ -461,14 +479,21 @@ export default function FloatingLines({
       }
 
       renderer.render(scene, camera);
-      raf = requestAnimationFrame(renderLoop);
     };
+
+    // 탭 복귀 시 누적된 hidden 구간이 clock 델타로 한꺼번에 더해져 애니메이션이 튀는 것을 막는다.
+    const handleVisibility = () => {
+      if (!document.hidden) clock.oldTime = performance.now();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
     renderLoop();
 
     return () => {
       active = false;
 
       cancelAnimationFrame(raf);
+      document.removeEventListener('visibilitychange', handleVisibility);
 
       if (ro) ro.disconnect();
 
@@ -499,7 +524,9 @@ export default function FloatingLines({
     bendStrength,
     mouseDamping,
     parallax,
-    parallaxStrength
+    parallaxStrength,
+    targetFps,
+    maxDpr
   ]);
 
   return (

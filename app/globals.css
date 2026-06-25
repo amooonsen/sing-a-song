@@ -156,12 +156,6 @@ html.lenis body {
     }
   body {
     @apply bg-background text-foreground;
-    /* 앰비언트 글로우 — 시그니처 그라데이션을 배경에 옅게 깐다(읽기 대비는 유지). */
-    background-image:
-      radial-gradient(120% 80% at 82% -12%, color-mix(in oklab, var(--g2) 22%, transparent), transparent 60%),
-      radial-gradient(90% 70% at -12% 0%, color-mix(in oklab, var(--g1) 18%, transparent), transparent 55%);
-    background-attachment: fixed;
-    background-repeat: no-repeat;
     }
   html {
     @apply font-sans;
@@ -176,6 +170,21 @@ html.lenis body {
       cursor: none !important;
     }
   }
+}
+
+/* 앰비언트 글로우 — 시그니처 핑크/바이올렛 그라데이션을 뷰포트에 고정으로 깐다.
+   background-attachment:fixed 는 스크롤마다 전체 영역을 재래스터해 프레임을 떨어뜨리므로,
+   합성 레이어로 승격되는 position:fixed div(.ambient-glow)로 분리해 1회만 페인트한다.
+   배경 WebGL 캔버스(-z-10)보다 뒤(-z-20)에 둬 기존 화면과 픽셀 동일하게 보이고,
+   reduced-motion 으로 캔버스가 사라져도 이 글로우는 그대로 유지된다. */
+.ambient-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -20;
+  pointer-events: none;
+  background-image:
+    radial-gradient(120% 80% at 82% -12%, color-mix(in oklab, var(--g2) 22%, transparent), transparent 60%),
+    radial-gradient(90% 70% at -12% 0%, color-mix(in oklab, var(--g1) 18%, transparent), transparent 55%);
 }
 
 /* 유리 렌즈 커서: r3f Canvas가 컨테이너/캔버스에 pointer-events:auto 를 붙여

@@ -147,7 +147,7 @@ export default async function SongDetailPage({
             />
 
             <div className="min-w-0 flex-1">
-              <h1 className="text-[clamp(1.9rem,5vw,3rem)] leading-[1.04] font-extrabold tracking-[-0.03em]">
+              <h1 className="text-grad text-[clamp(1.9rem,5vw,3rem)] leading-[1.04] font-extrabold tracking-[-0.03em]">
                 {song.title}
               </h1>
               <p className="mt-2 text-base font-medium text-muted-foreground sm:text-lg">
@@ -170,8 +170,8 @@ export default async function SongDetailPage({
               </div>
 
               {avg != null ? (
-                <div className="mt-6 flex flex-wrap items-end gap-4">
-                  <span className="text-grad text-6xl leading-none font-black tabular-nums">
+                <div className="mt-6 flex flex-wrap items-end gap-3.5">
+                  <span className="text-gold text-[2.75rem] leading-none font-black tabular-nums">
                     {avg.toFixed(1)}
                   </span>
                   <div className="flex flex-col gap-1 pb-1">

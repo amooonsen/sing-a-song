@@ -58,7 +58,7 @@ export function ScrapButton({
         aria-pressed={on}
         aria-label={label}
         className={cn(
-          "pointer-events-auto absolute top-2 left-2 z-10 inline-flex size-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/55 text-white backdrop-blur-sm transition-all duration-200 hover:scale-105 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
+          "pointer-events-auto absolute top-2 left-2 z-10 inline-flex size-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/55 text-white transition-all duration-200 hover:scale-105 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
           on
             ? "opacity-100"
             : "opacity-0 group-focus-within:opacity-100 group-hover:opacity-100",

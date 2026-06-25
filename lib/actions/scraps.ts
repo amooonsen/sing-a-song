@@ -46,7 +46,10 @@ export async function toggleScrap(songId: string): Promise<ActionResult> {
     return { ok: false, message: `스크랩 실패: ${error.message}` }
   }
 
-  revalidatePath("/me") // 내 보관함 목록 갱신
-  revalidatePath(`/songs/${songId}`)
+  // 현재 보고 있는 상세 경로(/songs/[id])는 재검증하지 않는다 — 스크랩은 이미 낙관적
+  // 업데이트라 즉시 반영되고, 같은 경로 재검증은 현재 라우트를 동기 리렌더(getSong 재조회)
+  // 시켜 배경 WebGL 깜빡임/프레임 끊김을 유발했다. revalidatePath 는 "보고 있는 경로일 때만"
+  // 즉시 UI 를 갱신하므로(Next 16 문서), /me 만 갱신해도 현재 페이지는 리렌더되지 않는다.
+  revalidatePath("/me") // 내 보관함 목록 갱신(다음 방문 시 신선)
   return { ok: true }
 }

@@ -61,7 +61,7 @@ function Hero({ song }: { song: SongWithAuthor }) {
           <h1 className="mt-3 text-[clamp(2rem,4.5vw,3.4rem)] leading-[1.04] font-extrabold tracking-[-0.035em]">
             <Link
               href={`/songs/${song.id}`}
-              className="transition-colors hover:text-brand"
+              className="text-grad transition-opacity hover:opacity-80"
             >
               {song.title}
             </Link>
@@ -70,8 +70,8 @@ function Hero({ song }: { song: SongWithAuthor }) {
             {song.artist}
           </p>
           {avg != null ? (
-            <div className="mt-5 flex flex-wrap items-center gap-4">
-              <span className="text-grad text-4xl leading-none font-black tabular-nums sm:text-5xl">
+            <div className="mt-5 flex flex-wrap items-center gap-3.5">
+              <span className="text-gold text-[2.25rem] leading-none font-black tabular-nums sm:text-[2.5rem]">
                 {avg.toFixed(1)}
               </span>
               <span className="flex items-center gap-2">

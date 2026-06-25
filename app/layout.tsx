@@ -41,6 +41,8 @@ export default function RootLayout({
       className={`dark ${pretendard.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
+        {/* 앰비언트 글로우 — 뷰포트 고정 레이어(스크롤 시 재래스터되던 body 고정배경 대체) */}
+        <div aria-hidden className="ambient-glow" />
         <SiteBackdrop />
         {/* <GlassCursor /> */}
         <NextTopLoader

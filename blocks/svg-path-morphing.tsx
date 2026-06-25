@@ -57,6 +57,13 @@ export function PathMorph({
 }: PathMorphProps) {
   const target = playing ? PAUSE : PLAY;
 
+  // 유휴 카드는 motion.path 대신 정적 <path> 로 그린다 — 그리드(최대 24장)에서 카드마다
+  // motion.path 2개(=약 48개)를 마운트하던 비용을 첫 재생 전까지 제거. 한 번이라도 재생하면
+  // motion 으로 승격(latch)하고, 그때의 initial(=PLAY)에서 PAUSE 로 첫 모핑도 그대로 재생된다.
+  // prop 변화에 따른 상태 조정은 렌더 중 setState(React 공식 패턴) — effect 가 아니라 cascading 없음.
+  const [animated, setAnimated] = useState(playing);
+  if (playing && !animated) setAnimated(true);
+
   return (
     <svg
       width={size}
@@ -69,8 +76,17 @@ export function PathMorph({
       strokeLinecap="round"
       className={className}
     >
-      <motion.path animate={{ d: target.left }} transition={spring} initial={false} />
-      <motion.path animate={{ d: target.right }} transition={spring} initial={false} />
+      {animated ? (
+        <>
+          <motion.path initial={{ d: PLAY.left }} animate={{ d: target.left }} transition={spring} />
+          <motion.path initial={{ d: PLAY.right }} animate={{ d: target.right }} transition={spring} />
+        </>
+      ) : (
+        <>
+          <path d={target.left} />
+          <path d={target.right} />
+        </>
+      )}
     </svg>
   );
 }

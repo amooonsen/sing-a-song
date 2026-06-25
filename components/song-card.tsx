@@ -113,8 +113,9 @@ export const SongCard = React.memo(function SongCard({
             </div>
           )}
           {/* 재생 중엔 유튜브 자체 컨트롤과 겹치지 않게 배지·스크랩은 숨긴다 */}
+          {/* 평점 배지는 좌하단 — 우상단은 재생/정지 버튼 자리(통일) */}
           {!playing && avg != null && (
-            <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/55 px-2 py-1 text-xs font-bold text-white backdrop-blur-sm">
+            <span className="absolute bottom-2 left-2 z-10 inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/55 px-2 py-1 text-xs font-bold text-white">
               <span className="text-gold">★</span>
               <span className="tabular-nums">{avg.toFixed(1)}</span>
             </span>
@@ -128,7 +129,7 @@ export const SongCard = React.memo(function SongCard({
               variant="overlay"
             />
           )}
-          {/* 바로 듣기/정지 — 유휴 시 우하단(호버), 재생 중엔 우상단 글래스(유튜브 컨트롤과 분리) */}
+          {/* 바로 듣기/정지 — 재생 전/중 모두 우상단(유튜브 컨트롤과 분리, 위치 통일). 유휴 시 호버로 노출 */}
           {embedId && (
             <PlayStopButton
               playing={playing}
@@ -141,10 +142,9 @@ export const SongCard = React.memo(function SongCard({
               tone={playing ? "glass" : "brand"}
               title={song.title}
               className={cn(
-                "pointer-events-auto absolute z-20",
-                playing
-                  ? "top-2 right-2"
-                  : "right-2 bottom-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
+                "pointer-events-auto absolute top-2 right-2 z-20",
+                !playing &&
+                  "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
               )}
             />
           )}

@@ -46,8 +46,11 @@ export function CoverPlaceholder({
         } as CSSProperties
       }
     >
-      {/* 그레인 */}
-      <span className="album-grain pointer-events-none absolute inset-0 opacity-[0.16] mix-blend-overlay" />
+      {/* 그레인 — 썸네일이 없을 때만. 이미지가 있으면 불투명 커버가 완전히 덮어
+          mix-blend 합성이 카드마다 낭비되므로(그리드 전체에서 누적) 생략한다. */}
+      {!imageUrl && (
+        <span className="album-grain pointer-events-none absolute inset-0 opacity-[0.16] mix-blend-overlay" />
+      )}
       {/* 비닐 링 */}
       <span
         className="pointer-events-none absolute -right-[22%] -bottom-[30%] aspect-square w-[78%] rounded-full border border-white/15"
