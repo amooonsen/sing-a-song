@@ -1,9 +1,25 @@
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentUser } from "@/lib/supabase/user"
+import { getIsAdmin } from "@/lib/auth/admin"
 import { JAPAN } from "@/lib/constants/countries"
 import type { Tables } from "@/types/database"
 
 export const PAGE_SIZE = 24
+
+/** 비관리자에게 노출되는 추천인·평점 작성자 표시명 */
+const ANON_NAME = "익명"
+
+/**
+ * 추천인·평점 작성자 실명 비공개.
+ * 관리자만 실명을 보고, 그 외에는 본인 포함 모든 작성자를 "익명"으로 통일한다.
+ * DB RLS(profiles SELECT + public.is_admin())와 함께 이중으로 적용되는 화면 레이어 가드.
+ */
+function anonymizeAuthor<
+  T extends { profiles: { display_name: string | null } | null },
+>(row: T, isAdmin: boolean): T {
+  if (isAdmin) return row
+  return { ...row, profiles: { display_name: ANON_NAME } }
+}
 
 /** 목록 정렬 기준 */
 export type SongSort = "recent" | "rating" | "popular"
@@ -136,7 +152,10 @@ export async function getSongs({
     throw new Error(error.message)
   }
 
-  const rows = (data ?? []) as unknown as SongWithAuthor[]
+  const isAdmin = await getIsAdmin()
+  const rows = ((data ?? []) as unknown as SongWithAuthor[]).map((r) =>
+    anonymizeAuthor(r, isAdmin)
+  )
   const songs = await markScrapped(supabase, rows)
   return { songs, hasMore: rows.length === limit }
 }
@@ -156,7 +175,7 @@ export async function getFeaturedSong(): Promise<SongWithAuthor | null> {
     .maybeSingle()
 
   if (error || !data) return null
-  return data as unknown as SongWithAuthor
+  return anonymizeAuthor(data as unknown as SongWithAuthor, await getIsAdmin())
 }
 
 /**
@@ -234,9 +253,15 @@ export async function getSong(id: string): Promise<SongDetail | null> {
   if (!songRes.data) return null
   if (commentsRes.error) throw new Error(commentsRes.error.message)
 
-  const song = songRes.data as unknown as SongWithAuthor
+  const isAdmin = await getIsAdmin()
+  const song = anonymizeAuthor(
+    songRes.data as unknown as SongWithAuthor,
+    isAdmin
+  )
   song.scrapped_by_me = Boolean(scrapRes.data)
-  const allComments = (commentsRes.data ?? []) as unknown as RatingWithAuthor[]
+  const allComments = (
+    (commentsRes.data ?? []) as unknown as RatingWithAuthor[]
+  ).map((c) => anonymizeAuthor(c, isAdmin))
   const likedIds = new Set(
     ((likesRes.data ?? []) as unknown as { song_rating_id: string }[]).map(
       (l) => l.song_rating_id
@@ -282,10 +307,11 @@ export async function getMyScrappedSongs(): Promise<SongWithAuthor[] | null> {
   if (error) throw new Error(error.message)
 
   // 임베드된 곡만 추출(곡 삭제 시 cascade 로 행도 사라지므로 보통 non-null)
+  const isAdmin = await getIsAdmin()
   const songs = (data ?? [])
     .map((row) => (row as unknown as { songs: SongWithAuthor | null }).songs)
     .filter((s): s is SongWithAuthor => s != null)
-    .map((s) => ({ ...s, scrapped_by_me: true }))
+    .map((s) => ({ ...anonymizeAuthor(s, isAdmin), scrapped_by_me: true }))
 
   return songs
 }

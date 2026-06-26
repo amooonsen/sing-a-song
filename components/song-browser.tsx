@@ -13,6 +13,7 @@ import { SearchBar } from "@/components/search-bar"
 import { GenreFilter } from "@/components/genre-filter"
 import { CountryFilter } from "@/components/country-filter"
 import { SortFilter, DEFAULT_SORT } from "@/components/sort-filter"
+import { ActiveFilters, type FilterKind } from "@/components/active-filters"
 import { SongFormDialog } from "@/components/song-form-dialog"
 import { CoverPlaceholder } from "@/components/cover-placeholder"
 import { StarRating } from "@/components/star-rating"
@@ -143,6 +144,28 @@ export function SongBrowser({
     [router, pathname, searchParams]
   )
 
+  // 칩 클릭 → 해당 필터만 제거 (국적 해제 시 종속된 씹덕도 함께)
+  const removeFilter = React.useCallback(
+    (kind: FilterKind) => {
+      navigate((p) => {
+        if (kind === "country") {
+          p.delete("country")
+          p.delete("otaku")
+        } else {
+          p.delete(kind)
+        }
+      })
+    },
+    [navigate]
+  )
+
+  // 전체 초기화 → 모든 쿼리스트링 제거(기본 보기로)
+  const reset = React.useCallback(() => {
+    startTransition(() => {
+      router.replace(pathname, { scroll: false })
+    })
+  }, [router, pathname])
+
   return (
     <div className="space-y-8">
       {featured && <Hero song={featured} />}
@@ -239,6 +262,17 @@ export function SongBrowser({
             />
           </div>
         </div>
+
+        {/* 적용된 필터 — 칩으로 개별 제거 + 전체 초기화 */}
+        <ActiveFilters
+          q={q}
+          genre={genre}
+          country={country}
+          otaku={otaku}
+          sort={sort}
+          onRemove={removeFilter}
+          onReset={reset}
+        />
       </div>
 
       <div

@@ -8,7 +8,8 @@ import { SiteBackdrop } from "@/components/site-backdrop"
 // 유리 렌즈 커서(fluid-glass) — 일단 비활성화. 다시 켜려면 아래 import 와 <GlassCursor /> 주석 해제.
 // import GlassCursor from "@/components/glass-cursor"
 import { RefreshProvider } from "@/components/refresh-provider"
-import { SmoothScrollProvider } from "@/components/smooth-scroll-provider"
+// Lenis 부드러운 스크롤 — 임시 비활성화. 다시 켜려면 아래 import 와 <SmoothScrollProvider> 래퍼 주석 해제.
+// import { SmoothScrollProvider } from "@/components/smooth-scroll-provider"
 import { Toaster } from "@/components/ui/sonner"
 
 // 본문·UI 한글 서체. 가변 woff2 자가호스팅 → 한글이 더 이상 OS 폴백으로 떨어지지 않는다.
@@ -51,12 +52,11 @@ export default function RootLayout({
           showSpinner={false}
           shadow="0 0 10px #ff4d7d,0 0 5px #9b5de5"
         />
-        <SmoothScrollProvider>
-          <RefreshProvider>
-            {children}
-            <Toaster richColors position="top-center" />
-          </RefreshProvider>
-        </SmoothScrollProvider>
+        {/* Lenis 임시 비활성화 — 네이티브 스크롤 사용. 되살리려면 <SmoothScrollProvider> 로 다시 감싸기. */}
+        <RefreshProvider>
+          {children}
+          <Toaster richColors position="top-center" />
+        </RefreshProvider>
       </body>
     </html>
   )

@@ -189,37 +189,39 @@ export const SongCard = React.memo(function SongCard({
             </div>
           </div>
 
-          {/* 메타 — 국적 스와치 + 미들닷, 또는 평가 없음 */}
-          {avg != null ? (
-            <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.7rem] font-medium text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5">
-                <span
-                  aria-hidden
-                  className="size-1.5 shrink-0 rounded-[2px]"
-                  style={{ background: swatch }}
-                />
-                {song.country}
-              </span>
-              <span aria-hidden className="text-foreground/25">
-                ·
-              </span>
-              <span>{song.genre}</span>
-              {song.otaku_type && (
-                <>
-                  <span aria-hidden className="text-foreground/25">
-                    ·
-                  </span>
-                  <span className={cn(isOtaku && "text-otaku")}>
-                    {song.otaku_type}
-                  </span>
-                </>
-              )}
-            </div>
-          ) : (
-            <p className="mt-2.5 text-[0.7rem] text-muted-foreground">
-              평가 없음 · {author} 추천
-            </p>
-          )}
+          {/* 메타 — 국적 스와치 + 장르(항상 노출). 평가 없으면 끝에 안내 */}
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.7rem] font-medium text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="size-1.5 shrink-0 rounded-[2px]"
+                style={{ background: swatch }}
+              />
+              {song.country}
+            </span>
+            <span aria-hidden className="text-foreground/25">
+              ·
+            </span>
+            <span>{song.genre}</span>
+            {song.otaku_type && (
+              <>
+                <span aria-hidden className="text-foreground/25">
+                  ·
+                </span>
+                <span className={cn(isOtaku && "text-otaku")}>
+                  {song.otaku_type}
+                </span>
+              </>
+            )}
+            {avg == null && (
+              <>
+                <span aria-hidden className="text-foreground/25">
+                  ·
+                </span>
+                <span>평가 없음 · {author} 추천</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
 

@@ -1,7 +1,5 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { createClient } from "@/lib/supabase/server"
 import { ensureProfile } from "@/lib/actions/ensure-profile"
 import type { ActionResult } from "@/lib/actions/songs"
@@ -46,10 +44,10 @@ export async function toggleScrap(songId: string): Promise<ActionResult> {
     return { ok: false, message: `스크랩 실패: ${error.message}` }
   }
 
-  // 현재 보고 있는 상세 경로(/songs/[id])는 재검증하지 않는다 — 스크랩은 이미 낙관적
-  // 업데이트라 즉시 반영되고, 같은 경로 재검증은 현재 라우트를 동기 리렌더(getSong 재조회)
-  // 시켜 배경 WebGL 깜빡임/프레임 끊김을 유발했다. revalidatePath 는 "보고 있는 경로일 때만"
-  // 즉시 UI 를 갱신하므로(Next 16 문서), /me 만 갱신해도 현재 페이지는 리렌더되지 않는다.
-  revalidatePath("/me") // 내 보관함 목록 갱신(다음 방문 시 신선)
+  // 재검증하지 않는다. 스크랩은 호출부에서 낙관적 업데이트라 즉시 반영되고,
+  // /me·/ 는 모두 인증(cookies) 기반 동적 렌더라 캐시되지 않아 다음 방문 시 항상 신선하다.
+  // 서버 액션 안의 revalidatePath 는 "어떤 경로를 넘기든" 현재 라우트의 RSC 를 다시 렌더링시켜
+  // (Next 동작) 목록이 재조정되고 그 위 풀뷰포트 WebGL blend 레이어가 한 프레임 깜빡인다.
+  // 신선도 이득이 없는 재검증을 제거해 현재 라우트 리렌더 자체를 막는다 → 배경 깜빡임 해소.
   return { ok: true }
 }
