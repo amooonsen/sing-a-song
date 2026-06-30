@@ -12,6 +12,7 @@ type SearchParams = {
   otaku?: string
   page?: string
   sort?: string
+  view?: string
 }
 
 export default async function HomePage({
@@ -33,6 +34,8 @@ export default async function HomePage({
   // 최신순(recent)은 기본값이라 URL 에서 생략
   const sort =
     sp.sort === "rating" || sp.sort === "popular" ? sp.sort : undefined
+  // 표시 전용 — 데이터 조회에는 영향 없음(썸네일 기본)
+  const view = sp.view === "list" ? "list" : "grid"
 
   const hasFilters = Boolean(q || genre || country)
   // 히어로는 필터/검색 없는 첫 페이지에서만 노출
@@ -50,6 +53,7 @@ export default async function HomePage({
   if (country) nextParams.set("country", country)
   if (otaku) nextParams.set("otaku", otaku)
   if (sort) nextParams.set("sort", sort)
+  if (view === "list") nextParams.set("view", "list")
   nextParams.set("page", String(page + 1))
   const nextHref = `/?${nextParams.toString()}`
 
@@ -67,6 +71,7 @@ export default async function HomePage({
             hasMore={hasMore}
             nextHref={nextHref}
             hasFilters={hasFilters}
+            view={view}
           />
         </SongBrowser>
       </main>

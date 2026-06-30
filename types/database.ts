@@ -60,6 +60,7 @@ export type Database = {
           rating: number | null
           rating_avg: number | null
           rating_count: number
+          comment_count: number
           url: string | null
           thumbnail_url: string | null
           youtube_video_id: string | null
@@ -79,6 +80,7 @@ export type Database = {
           rating?: number | null
           rating_avg?: number | null
           rating_count?: number
+          comment_count?: number
           url?: string | null
           thumbnail_url?: string | null
           youtube_video_id?: string | null
@@ -98,6 +100,7 @@ export type Database = {
           rating?: number | null
           rating_avg?: number | null
           rating_count?: number
+          comment_count?: number
           url?: string | null
           thumbnail_url?: string | null
           youtube_video_id?: string | null

@@ -4,6 +4,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* 호버 가능한 포인터(데스크톱)에서만 적용 — 터치 기기에선 호버-노출 컨트롤을 항상 보이게 한다.
+   예) hover-hover:opacity-0 + group-hover:opacity-100 → 데스크톱은 호버 노출, 터치는 상시 노출. */
+@custom-variant hover-hover (@media (hover: hover));
+
 /* Lenis 부드러운 스크롤 (lenis/dist/lenis.css) */
 html.lenis,
 html.lenis body {

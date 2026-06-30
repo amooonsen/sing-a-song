@@ -227,8 +227,8 @@ export function SongFormDialog({
           <AddSongCta />
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 p-0 sm:max-w-md">
+        <DialogHeader className="shrink-0 px-4 pt-4">
           <DialogTitle>{isEdit ? "곡 수정" : "곡 추가"}</DialogTitle>
           <DialogDescription>
             {isEdit
@@ -238,7 +238,12 @@ export function SongFormDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex min-h-0 min-w-0 flex-1 flex-col"
+          >
+            {/* 본문만 스크롤 — 헤더/푸터는 고정. min-w-0 로 긴 제목 가로 넘침 방지 */}
+            <div className="min-w-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">
             {/* YouTube 파인더 — 선택. 제목·가수·썸네일 자동 채움 */}
             <div className="space-y-2">
               <p className="text-sm font-medium">
@@ -502,8 +507,9 @@ export function SongFormDialog({
                 />
               </>
             )}
+            </div>
 
-            <DialogFooter>
+            <DialogFooter className="mx-0 mb-0 shrink-0">
               <Button
                 type="button"
                 variant="outline"

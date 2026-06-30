@@ -6,6 +6,7 @@ import { HiArrowTopRightOnSquare, HiOutlineArrowLeft } from "react-icons/hi2"
 import { getSong } from "@/lib/data/songs"
 import { countryColorVar } from "@/lib/country-style"
 import { AppHeader } from "@/components/app-header"
+import { DetailCloseButton } from "@/components/detail-close-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { StarRating } from "@/components/star-rating"
@@ -96,16 +97,15 @@ export default async function SongDetailPage({
     <div className="flex min-h-dvh flex-col">
       <AppHeader />
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:py-10">
-        <Button
-          asChild
-          variant="ghost"
-          size="sm"
-          className="-ml-1.5 mb-5 text-muted-foreground"
-        >
-          <Link href="/">
-            <HiOutlineArrowLeft className="size-4" /> 선곡집으로
-          </Link>
-        </Button>
+        {/* 상단 바 — 좌측 '선곡집으로'(강조), 우측 X 닫기 */}
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <Button asChild variant="outline" size="sm" className="rounded-full">
+            <Link href="/">
+              <HiOutlineArrowLeft className="size-4" /> 선곡집으로
+            </Link>
+          </Button>
+          <DetailCloseButton />
+        </div>
 
         {/* === 히어로: 재생 슬리브 + 메타 + 큰 평균 === */}
         <header className="animate-rise-in relative overflow-hidden rounded-3xl border border-border bg-card shadow-[0_18px_50px_-18px_rgba(0,0,0,0.5)]">
