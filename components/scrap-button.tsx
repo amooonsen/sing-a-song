@@ -61,7 +61,8 @@ export function ScrapButton({
           "pointer-events-auto absolute top-2 left-2 z-10 inline-flex size-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/55 text-white transition-all duration-200 hover:scale-105 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
           on
             ? "opacity-100"
-            : "opacity-0 group-focus-within:opacity-100 group-hover:opacity-100",
+            : // 터치 기기: 상시 노출 / 데스크톱(hover-hover): 호버·포커스 시 노출
+              "hover-hover:opacity-0 group-focus-within:opacity-100 group-hover:opacity-100",
           className
         )}
       >

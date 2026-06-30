@@ -13,6 +13,7 @@ import { SearchBar } from "@/components/search-bar"
 import { GenreFilter } from "@/components/genre-filter"
 import { CountryFilter } from "@/components/country-filter"
 import { SortFilter, DEFAULT_SORT } from "@/components/sort-filter"
+import { ViewToggle, type ViewMode } from "@/components/view-toggle"
 import { ActiveFilters, type FilterKind } from "@/components/active-filters"
 import { SongFormDialog } from "@/components/song-form-dialog"
 import { CoverPlaceholder } from "@/components/cover-placeholder"
@@ -130,12 +131,17 @@ export function SongBrowser({
   const country = searchParams.get("country") ?? ALL_COUNTRIES
   const otaku = searchParams.get("otaku") ?? ALL_OTAKU
   const sort = searchParams.get("sort") ?? DEFAULT_SORT
+  const view: ViewMode = searchParams.get("view") === "list" ? "list" : "grid"
 
   const navigate = React.useCallback(
-    (mutate: (params: URLSearchParams) => void) => {
+    (
+      mutate: (params: URLSearchParams) => void,
+      opts?: { keepPage?: boolean }
+    ) => {
       const params = new URLSearchParams(searchParams.toString())
       mutate(params)
-      params.delete("page") // 조건 변경 시 페이지 초기화
+      // 조건 변경 시 페이지 초기화 (뷰 전환 등 표시 전용 변경은 keepPage 로 유지)
+      if (!opts?.keepPage) params.delete("page")
       const qs = params.toString()
       startTransition(() => {
         router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
@@ -258,6 +264,18 @@ export function SongBrowser({
                   if (value === DEFAULT_SORT) p.delete("sort")
                   else p.set("sort", value)
                 })
+              }
+            />
+            <ViewToggle
+              value={view}
+              onChange={(v) =>
+                navigate(
+                  (p) => {
+                    if (v === "list") p.set("view", "list")
+                    else p.delete("view")
+                  },
+                  { keepPage: true }
+                )
               }
             />
           </div>

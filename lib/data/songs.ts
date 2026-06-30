@@ -6,12 +6,13 @@ import type { Tables } from "@/types/database"
 
 export const PAGE_SIZE = 24
 
-/** 비관리자에게 노출되는 추천인·평점 작성자 표시명 */
+/** 비관리자에게 노출되는 한줄평(평점) 작성자 표시명 */
 const ANON_NAME = "익명"
 
 /**
- * 추천인·평점 작성자 실명 비공개.
+ * 한줄평(평점) 작성자 실명 비공개.
  * 관리자만 실명을 보고, 그 외에는 본인 포함 모든 작성자를 "익명"으로 통일한다.
+ * 곡 등록자(songs.created_by)는 예외 — 닉네임을 그대로 노출하므로 이 함수를 거치지 않는다.
  * DB RLS(profiles SELECT + public.is_admin())와 함께 이중으로 적용되는 화면 레이어 가드.
  */
 function anonymizeAuthor<
@@ -129,6 +130,9 @@ export async function getSongs({
   } else {
     query = query.order("created_at", { ascending: false })
   }
+  // 결정적 최종 tie-break — created_at 동순위가 평점 등록(곡 행 UPDATE) 시
+  // heap 순서 변동으로 재배열되던 버그 차단(페이지네이션 일관성도 확보).
+  query = query.order("id", { ascending: false })
 
   if (genre && genre !== "all") {
     query = query.eq("genre", genre)
@@ -152,10 +156,8 @@ export async function getSongs({
     throw new Error(error.message)
   }
 
-  const isAdmin = await getIsAdmin()
-  const rows = ((data ?? []) as unknown as SongWithAuthor[]).map((r) =>
-    anonymizeAuthor(r, isAdmin)
-  )
+  // 곡 등록자는 닉네임 그대로 노출(익명화 제외).
+  const rows = (data ?? []) as unknown as SongWithAuthor[]
   const songs = await markScrapped(supabase, rows)
   return { songs, hasMore: rows.length === limit }
 }
@@ -171,11 +173,13 @@ export async function getFeaturedSong(): Promise<SongWithAuthor | null> {
     .select("*, profiles!songs_created_by_fkey(display_name)")
     .order("rating_avg", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false }) // 동점 결정적 선택
     .limit(1)
     .maybeSingle()
 
   if (error || !data) return null
-  return anonymizeAuthor(data as unknown as SongWithAuthor, await getIsAdmin())
+  // 곡 등록자는 닉네임 그대로 노출.
+  return data as unknown as SongWithAuthor
 }
 
 /**
@@ -254,10 +258,8 @@ export async function getSong(id: string): Promise<SongDetail | null> {
   if (commentsRes.error) throw new Error(commentsRes.error.message)
 
   const isAdmin = await getIsAdmin()
-  const song = anonymizeAuthor(
-    songRes.data as unknown as SongWithAuthor,
-    isAdmin
-  )
+  // 곡 등록자는 닉네임 그대로, 한줄평 작성자만 익명화.
+  const song = songRes.data as unknown as SongWithAuthor
   song.scrapped_by_me = Boolean(scrapRes.data)
   const allComments = (
     (commentsRes.data ?? []) as unknown as RatingWithAuthor[]
@@ -307,11 +309,11 @@ export async function getMyScrappedSongs(): Promise<SongWithAuthor[] | null> {
   if (error) throw new Error(error.message)
 
   // 임베드된 곡만 추출(곡 삭제 시 cascade 로 행도 사라지므로 보통 non-null)
-  const isAdmin = await getIsAdmin()
+  // 곡 등록자는 닉네임 그대로 노출.
   const songs = (data ?? [])
     .map((row) => (row as unknown as { songs: SongWithAuthor | null }).songs)
     .filter((s): s is SongWithAuthor => s != null)
-    .map((s) => ({ ...anonymizeAuthor(s, isAdmin), scrapped_by_me: true }))
+    .map((s) => ({ ...s, scrapped_by_me: true }))
 
   return songs
 }
